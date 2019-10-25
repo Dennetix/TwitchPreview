@@ -5,6 +5,12 @@
 
     "description": "Shows a preview when hovering over a twitch livestream.",
 
+    "icons": {
+        "32": "icons/icon32.png",
+        "64": "icons/icon64.png",
+        "128": "icons/icon128.png"
+    },
+
     "content_scripts": [
         {
             "matches": ["*://*.twitch.tv/*"],
