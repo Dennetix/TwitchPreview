@@ -1,0 +1,15 @@
+{
+    "manifest_version": 2,
+    "name": "TwitchPreview",
+    "version": "1.0.0",
+
+    "description": "Shows a preview when hovering over a twitch livestream.",
+
+    "content_scripts": [
+        {
+            "matches": ["*://*.twitch.tv/*"],
+            "run_at": "document_end",
+            "js": ["bundle.js"]
+        }
+    ]
+}

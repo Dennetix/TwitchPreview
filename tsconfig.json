@@ -1,0 +1,19 @@
+{
+    "include": [
+        "src/**/*"
+    ],
+    "compilerOptions": {
+        "baseUrl": "./src",
+        "allowJs": true,
+        "checkJs": false,
+        "experimentalDecorators": true,
+        "noImplicitAny": true,
+        "strict": true,
+        "strictNullChecks": true,
+        "moduleResolution": "node",
+        "module": "esnext",
+        "target": "esnext",
+        "resolveJsonModule": true,
+        "outDir": "dist/"
+    }
+}

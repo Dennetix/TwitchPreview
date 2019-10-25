@@ -1,0 +1,23 @@
+{
+    "name": "twitch-preview",
+    "version": "1.0.0",
+    "description": "",
+    "scripts": {
+        "build": "webpack-cli --mode=development -w --display-error-details",
+        "build:production": "webpack-cli --mode=production --display-error-details",
+        "lint": "tslint --project tsconfig.json --config tslint.json"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/dennetix/TwitchPreview.git"
+    },
+    "license": "MIT",
+    "devDependencies": {
+        "ts-loader": "^6.0.4",
+        "tslint": "^5.19.0",
+        "tslint-config-airbnb": "^5.11.1",
+        "typescript": "^3.6.2",
+        "webpack": "^4.39.3",
+        "webpack-cli": "^3.3.7"
+    }
+}
