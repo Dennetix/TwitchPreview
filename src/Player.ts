@@ -14,6 +14,7 @@ export default class Player {
         this.spinner.style.position = 'fixed';
         this.spinner.style.left = '46%';
         this.spinner.style.top = '45%';
+        this.spinner.style.pointerEvents = 'none';
         container.append(this.spinner);
 
         // Create an iframe with the twitch player of the channel
