@@ -1,13 +1,11 @@
 export default class Player {
 
-    private active: boolean;
     private observer: MutationObserver;
 
     private spinner: HTMLDivElement;
     private player: HTMLIFrameElement;
 
     constructor(channelName: string, private container: HTMLDivElement) {
-        this.active = true;
         this.observer = new MutationObserver(this.onMutation.bind(this));
 
         // Create loading spinner
@@ -25,6 +23,7 @@ export default class Player {
         this.player.width = container.clientWidth.toString();
         this.player.height = container.clientHeight.toString();
         this.player.style.display = 'none';
+        this.player.style.pointerEvents = 'none';
         this.player.onload = () => {
             this.observer.observe(this.player.contentDocument!.body, { childList: true, subtree: true });
         };
@@ -32,11 +31,8 @@ export default class Player {
     }
 
     public remove(): void {
-        if (this.active) {
-            this.active = false;
-            this.player.remove();
-            this.spinner.remove();
-        }
+        this.player.remove();
+        this.spinner.remove();
     }
 
     private onMutation(mutations: MutationRecord[], observer: MutationObserver): void {
