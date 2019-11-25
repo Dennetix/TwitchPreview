@@ -10,7 +10,7 @@ export default class Player {
 
         // Create loading spinner
         this.spinner = document.createElement('div');
-        this.spinner.className = 'tw-loading-spinner';
+        this.spinner.className = 'tw-loading-spinner__circle';
         this.spinner.style.position = 'fixed';
         this.spinner.style.left = '46%';
         this.spinner.style.top = '45%';

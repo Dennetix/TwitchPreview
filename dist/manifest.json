@@ -1,7 +1,7 @@
 {
     "manifest_version": 2,
     "name": "TwitchPreview",
-    "version": "1.0.2",
+    "version": "1.0.3",
 
     "description": "Shows a preview when hovering over a twitch livestream.",
 
