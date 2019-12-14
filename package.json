@@ -1,6 +1,6 @@
 {
     "name": "twitch-preview",
-    "version": "1.0.3",
+    "version": "1.0.4",
     "description": "",
     "scripts": {
         "build": "webpack-cli --mode=development -w --display-error-details",
