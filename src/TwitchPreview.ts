@@ -15,7 +15,8 @@ class TwitchPreview {
                     const channelName = card.getElementsByClassName('preview-card-titles__subtitle-wrapper')[0].firstChild!.textContent!.replace(/.*\((\w+)\)/, '$1');
 
                     // Check that this is a live stream and not a vod
-                    if (card.getElementsByClassName('preview-card-overlay')[0].firstChild!.textContent === 'LIVE') {
+                    const text = card.getElementsByClassName('preview-card-overlay')[0].textContent!.toLowerCase();
+                    if (text.includes('live') || text.includes('rerun') || text.includes('hosting')) {
                         let player: Player;
                         thumbnailContainer.onmouseenter = () => {
                             player = new Player(channelName, thumbnailContainer);
