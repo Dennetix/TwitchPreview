@@ -1,4 +1,4 @@
-export default class Player {
+export class Player {
 
     private observer: MutationObserver;
 
@@ -9,12 +9,27 @@ export default class Player {
         this.observer = new MutationObserver(this.onMutation.bind(this));
 
         // Create loading spinner
+        const spinnerAnim = document.createElement('style');
+        spinnerAnim.innerHTML = `
+            @keyframes spinner-anim {
+                from { transform: rotate(0deg); }
+                to { transform: rotate(360deg); }
+            }
+        `;
+        document.getElementsByTagName('head')[0].append(spinnerAnim);
+
         this.spinner = document.createElement('div');
-        this.spinner.className = 'tw-loading-spinner__circle';
+        this.spinner.style.minHeight = '2.5rem';
+        this.spinner.style.width = '2.5rem';
+        this.spinner.style.height = '2.2rem';
+        this.spinner.style.border = '2px solid rgba(128, 128, 128, 0.3)';
+        this.spinner.style.borderLeft = '2px solid #d9d8dd';
+        this.spinner.style.borderRadius = '50%';
         this.spinner.style.position = 'fixed';
         this.spinner.style.left = '46%';
         this.spinner.style.top = '45%';
         this.spinner.style.pointerEvents = 'none';
+        this.spinner.style.animation = 'spinner-anim 1s infinite linear';
         container.append(this.spinner);
 
         // Create an iframe with the twitch player of the channel
@@ -28,7 +43,7 @@ export default class Player {
         this.player.onload = () => {
             this.observer.observe(this.player.contentDocument!.body, { childList: true, subtree: true });
         };
-        container.prepend(this.player);
+        container.append(this.player);
     }
 
     public remove(): void {
