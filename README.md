@@ -10,6 +10,6 @@ npm install
 npm run build:production
 ```
 #### Versions used
-node: v12.14.0
+node: v14.4.0
 
-npm: v6.13.4
+npm: v6.14.5

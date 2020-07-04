@@ -1,12 +1,44 @@
+import * as Hls from 'hls.js';
+
 export class Player {
 
-    private observer: MutationObserver;
+    private hls: Hls;
 
     private spinner: HTMLDivElement;
-    private player: HTMLIFrameElement;
+    private video: HTMLVideoElement;
 
     constructor(channelName: string, private container: HTMLDivElement) {
-        this.observer = new MutationObserver(this.onMutation.bind(this));
+        this.hls = new Hls();
+        this.hls.on(Hls.Events.ERROR, (event, error) => {
+            console.error(error);
+        });
+
+        // Get and load hls stream
+        const clientId = 'kimne78kx3ncx6brgo4mv6wki5h1ko';
+        fetch(`https://api.twitch.tv/api/channels/${channelName}/access_token?client_id=${clientId}`)
+            .then(res => res.json() as Promise<{[key: string]: string}>)
+            .then(res => (
+                fetch(`https://usher.ttvnw.net/api/channel/hls/${channelName.toLowerCase()}.m3u8?client_id=${clientId}&token=${res.token}&sig=${res.sig}`)
+            ))
+            .then(res => res.text())
+            .then(res => this.hls.loadSource(this.parsePlaylist(res)))
+            .catch(err => console.error(err));
+
+        // Create video element
+        this.video = document.createElement('video');
+        this.hls.attachMedia(this.video);
+        this.video.width = container.clientWidth;
+        this.video.height = container.clientHeight;
+        this.video.muted = true;
+        this.video.controls = false;
+        this.video.style.display = 'none';
+        this.video.style.pointerEvents = 'none';
+        this.video.oncanplay = () => {
+            this.spinner.remove();
+            void this.video.play();
+            this.video.style.display = 'block';
+        };
+        container.append(this.video);
 
         // Create loading spinner
         const spinnerAnim = document.createElement('style');
@@ -16,7 +48,7 @@ export class Player {
                 to { transform: rotate(360deg); }
             }
         `;
-        document.getElementsByTagName('head')[0].append(spinnerAnim);
+        document.head.append(spinnerAnim);
 
         this.spinner = document.createElement('div');
         this.spinner.style.minHeight = '2.5rem';
@@ -31,55 +63,19 @@ export class Player {
         this.spinner.style.pointerEvents = 'none';
         this.spinner.style.animation = 'spinner-anim 1s infinite linear';
         container.append(this.spinner);
-
-        // Create an iframe with the twitch player of the channel
-        this.player = document.createElement('iframe');
-        this.player.src = `https://player.twitch.tv/?autoplay=true&muted=true&channel=${channelName}`;
-        this.player.allowFullscreen = false;
-        this.player.width = container.clientWidth.toString();
-        this.player.height = container.clientHeight.toString();
-        this.player.style.display = 'none';
-        this.player.style.pointerEvents = 'none';
-        this.player.onload = () => {
-            this.observer.observe(this.player.contentDocument!.body, { childList: true, subtree: true });
-        };
-        container.append(this.player);
     }
 
     public remove(): void {
-        this.player.remove();
+        this.hls.destroy();
         this.spinner.remove();
+        this.video.remove();
     }
 
-    private onMutation(mutations: MutationRecord[], observer: MutationObserver): void {
-        for (const mutation of mutations) {
-            for (const element of mutation.addedNodes) {
-                // Remove overlay and show only error
-                if (this.player.contentDocument!.getElementsByClassName('pl-error')[0]) {
-                    for (const e of this.player.contentDocument!.getElementsByClassName('hover-display')) {
-                        e.remove();
-                    }
-                    this.spinner.remove();
-                    this.player.style.display = 'block';
-                    observer.disconnect();
-                    break;
-                }
-
-                if (this.player.contentDocument!.getElementById('mature-link')) {
-                    // Dismiss mature warning
-                    this.player.contentDocument!.getElementById('mature-link')!.click();
-                } else if (element instanceof HTMLVideoElement) {
-                    element.onplaying = () => {
-                        // Remove ui and show player
-                        this.player.contentDocument!.getElementsByClassName('player-ui')[0].remove();
-                        this.spinner.remove();
-                        this.player.style.display = 'block';
-                        element.muted = true;
-                        observer.disconnect();
-                    };
-                }
-            }
+    private parsePlaylist(playlist: string): string {
+        if (playlist.includes('VIDEO="360p30"')) {
+            return playlist.split('VIDEO="360p30"\n')[1].split('m3u8')[0];
         }
+        return playlist.split('VIDEO="chunked"\n')[1].split('m3u8')[0];
     }
 
 }
