@@ -24,7 +24,7 @@ class TwitchPreview {
 
                         // Make sure that this is a livestream, rerun or host and not a VOD
                         let indicator = card.getElementsByClassName('tw-channel-status-text-indicator')[0];
-                        indicator = indicator || card.getElementsByClassName('stream-type-indicator--live')[0];
+                        indicator = indicator || card.getElementsByClassName('stream-type-indicator')[0];
                         if (!indicator) {
                             continue;
                         }
