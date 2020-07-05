@@ -7,7 +7,7 @@ export class Player {
     private spinner: HTMLDivElement;
     private video: HTMLVideoElement;
 
-    constructor(channelName: string, private container: HTMLDivElement) {
+    constructor(channelName: string, private container: HTMLDivElement, private highRes: boolean) {
         this.hls = new Hls();
         this.hls.on(Hls.Events.ERROR, (event, error) => {
             console.error(error);
@@ -37,8 +37,9 @@ export class Player {
             this.spinner.remove();
             void this.video.play();
             this.video.style.display = 'block';
+            container.getElementsByTagName('img')[0].style.display = 'none';
         };
-        container.append(this.video);
+        container.insertBefore(this.video, container.firstChild);
 
         // Create loading spinner
         const spinnerAnim = document.createElement('style');
@@ -57,25 +58,28 @@ export class Player {
         this.spinner.style.border = '2px solid rgba(128, 128, 128, 0.3)';
         this.spinner.style.borderLeft = '2px solid #d9d8dd';
         this.spinner.style.borderRadius = '50%';
-        this.spinner.style.position = 'fixed';
-        this.spinner.style.left = '46%';
-        this.spinner.style.top = '45%';
+        this.spinner.style.position = 'absolute';
         this.spinner.style.pointerEvents = 'none';
         this.spinner.style.animation = 'spinner-anim 1s infinite linear';
         container.append(this.spinner);
+        this.spinner.style.left = `${(container.clientWidth / 2) - (this.spinner.clientWidth / 2)}px`;
+        this.spinner.style.top = `${(container.clientHeight / 2) - (this.spinner.clientHeight / 2)}px`;
     }
 
     public remove(): void {
+        this.container.getElementsByTagName('img')[0].style.display = 'block';
         this.hls.destroy();
         this.spinner.remove();
         this.video.remove();
     }
 
     private parsePlaylist(playlist: string): string {
-        if (playlist.includes('VIDEO="360p30"')) {
+        if (playlist.includes('VIDEO="chunked"')) {
+            return playlist.split('VIDEO="chunked"\n')[1].split('m3u8')[0];
+        } else if (this.highRes) {
             return playlist.split('VIDEO="360p30"\n')[1].split('m3u8')[0];
         }
-        return playlist.split('VIDEO="chunked"\n')[1].split('m3u8')[0];
+        return playlist.split('VIDEO="160p30"\n')[1].split('m3u8')[0];
     }
 
 }
