@@ -23,7 +23,7 @@ class TwitchPreview {
                             card = card.parentElement!;
                         }
 
-                        const thumbnailContainer = cardImageContainer.getElementsByClassName('tw-aspect--align-top')[0] as HTMLDivElement;
+                        const thumbnailContainer = cardImageContainer.getElementsByTagName('img')[0].parentElement as HTMLDivElement;
                         const channelName = card.querySelector("[data-a-target='preview-card-channel-link']")!.textContent!.replace(/.*\((\w+)\)/, '$1');
 
                         // Make sure that this is a livestream, rerun or host and not a VOD
