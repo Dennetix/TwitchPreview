@@ -15,35 +15,28 @@ class TwitchPreview {
             for (const element of mutation.addedNodes) {
                 if ((element as HTMLElement).nodeName !== '#text') {
                     // Livestream preview cards
-                    const cardImageContainers = (element as HTMLElement).querySelectorAll("[data-a-target='preview-card-image-link']");
+                    const cardImageContainers = (element as HTMLElement).getElementsByClassName('preview-card-image-link') as HTMLCollectionOf<HTMLAnchorElement>;
                     for (const cardImageContainer of cardImageContainers) {
-                        // Search DOM backwards until article is found
-                        let card = cardImageContainer;
-                        while (card.localName !== 'article') {
-                            card = card.parentElement!;
-                        }
-
                         const thumbnailContainer = cardImageContainer.getElementsByTagName('img')[0].parentElement as HTMLDivElement;
-                        const channelName = card.querySelector("[data-a-target='preview-card-channel-link']")!.textContent!.replace(/.*\((\w+)\)/, '$1');
+                        const channelName = cardImageContainer.pathname.slice(1);
 
                         // Make sure that this is a livestream, rerun or host and not a VOD
-                        let indicator = card.getElementsByClassName('tw-channel-status-text-indicator')[0];
-                        indicator = indicator || card.getElementsByClassName('stream-type-indicator')[0];
-                        if (!indicator) {
-                            continue;
-                        }
-                        const status = indicator.textContent!.toLowerCase();
-                        if (status.includes('live') || status.includes('rerun') || status.includes('hosting')) {
-                            let player: Player | undefined;
-                            thumbnailContainer.onmouseenter = () => {
-                                player = new Player(channelName, thumbnailContainer, true);
-                            };
-                            thumbnailContainer.onmouseleave = () => {
-                                if (player) {
-                                    player.remove();
-                                    player = undefined;
-                                }
-                            };
+                        const indicator = cardImageContainer.getElementsByClassName('tw-channel-status-text-indicator')[0]
+                            || cardImageContainer.getElementsByClassName('stream-type-indicator')[0];
+                        if (indicator) {
+                            const status = indicator.textContent!.toLowerCase();
+                            if (status.includes('live') || status.includes('rerun') || status.includes('hosting')) {
+                                let player: Player | undefined;
+                                thumbnailContainer.onmouseenter = () => {
+                                    player = new Player(channelName, thumbnailContainer);
+                                };
+                                thumbnailContainer.onmouseleave = () => {
+                                    if (player) {
+                                        player.remove();
+                                        player = undefined;
+                                    }
+                                };
+                            }
                         }
                     }
 
@@ -55,7 +48,7 @@ class TwitchPreview {
 
                         let player: Player | undefined;
                         (searchResultCard as HTMLElement).onmouseenter = () => {
-                            player = new Player(channelName, thumbnailContainer, false);
+                            player = new Player(channelName, thumbnailContainer);
                         };
                         (searchResultCard as HTMLElement).onmouseleave = () => {
                             if (player) {
@@ -63,6 +56,26 @@ class TwitchPreview {
                                 player = undefined;
                             }
                         };
+                    }
+
+                    // Search results related streams
+                    const searchResultRelatedCards = (element as HTMLElement).getElementsByClassName('search-result-related-live-channels__row-container')[0];
+                    if (searchResultRelatedCards) {
+                        for (const searchResultRelatedCard of searchResultRelatedCards.getElementsByTagName('article')) {
+                            const thumbnailContainer = searchResultRelatedCard.getElementsByTagName('img')[0].parentElement as HTMLDivElement;
+                            const channelName = searchResultRelatedCard.getElementsByTagName('a')[0].pathname.slice(1);
+
+                            let player: Player | undefined;
+                            searchResultRelatedCard.onmouseenter = () => {
+                                player = new Player(channelName, thumbnailContainer);
+                            };
+                            searchResultRelatedCard.onmouseleave = () => {
+                                if (player) {
+                                    player.remove();
+                                    player = undefined;
+                                }
+                            };
+                        }
                     }
 
                     // Sidebar nav cards
@@ -76,11 +89,10 @@ class TwitchPreview {
                         };
                     }
 
-                    const sidebarTooltip = (element as HTMLElement).getElementsByClassName('rich-content-tooltip__pointer-target')[0] as HTMLDivElement;
-                    if (sidebarTooltip) {
-                        (document.getElementsByClassName('tooltip-layer')[0] as HTMLDivElement).style.zIndex = '9999';
+                    const sidebarTooltip = (element as HTMLElement).getElementsByClassName('online-side-nav-channel-tooltip__body')[0] as HTMLDivElement;
+                    if (sidebarTooltip && !this.sidebarTooltip) {
                         this.sidebarTooltip = sidebarTooltip;
-                        if (this.hoveredSidebarChannel && sidebarTooltip.getElementsByClassName('online-side-nav-channel-tooltip__body').length > 0) {
+                        if (this.hoveredSidebarChannel) {
                             this.addSidebarPreview(this.hoveredSidebarChannel, this.sidebarTooltip);
                         }
                     }
@@ -101,22 +113,21 @@ class TwitchPreview {
     private addSidebarPreview(channel: HTMLDivElement, tooltip: HTMLDivElement): void {
         const container = document.createElement('div');
         container.style.position = 'relative';
-        container.style.width = '256px';
-        container.style.height = '144px';
+        container.style.width = '320px';
+        container.style.height = '180px';
         container.style.background = 'black';
-        container.style.margin = '0 9px 0 9px';
-        tooltip.style.paddingBottom = '9px';
+        tooltip.style.paddingBottom = '6px';
         tooltip.append(container);
 
         const channelName = channel.getElementsByTagName('a')[0].pathname.slice(1);
 
         const thumbnail = document.createElement('img');
-        thumbnail.src = `https://static-cdn.jtvnw.net/previews-ttv/live_user_${channelName}-256x144.jpg`;
-        thumbnail.width = 256;
-        thumbnail.height = 144;
+        thumbnail.src = `https://static-cdn.jtvnw.net/previews-ttv/live_user_${channelName}-320x180.jpg`;
+        thumbnail.width = 320;
+        thumbnail.height = 180;
         container.append(thumbnail);
 
-        let player: Player | undefined = new Player(channelName, container, false);
+        let player: Player | undefined = new Player(channelName, container);
         channel.onmouseleave = () => {
             if (player) {
                 player.remove();

@@ -1,4 +1,4 @@
-import * as Hls from 'hls.js';
+import Hls from 'hls.js';
 
 export class Player {
 
@@ -7,19 +7,41 @@ export class Player {
     private spinner: HTMLDivElement;
     private video: HTMLVideoElement;
 
-    constructor(channelName: string, private container: HTMLDivElement, private highRes: boolean) {
+    constructor(channelName: string, private container: HTMLDivElement) {
         this.hls = new Hls();
         this.hls.on(Hls.Events.ERROR, (event, error) => {
             console.error(error);
         });
 
+        const gqlBody = JSON.stringify({
+            operationName: 'PlaybackAccessToken',
+            extensions: {
+                persistedQuery: {
+                    version: 1,
+                    sha256Hash: '0828119ded1c13477966434e15800ff57ddacf13ba1911c129dc2200705b0712'
+                }
+            },
+            variables: {
+                isLive: true,
+                login: channelName,
+                isVod: false,
+                vodID: '',
+                playerType: 'embed'
+            }
+        });
+
         // Get and load hls stream
         const clientId = 'kimne78kx3ncx6brgo4mv6wki5h1ko';
-        fetch(`https://api.twitch.tv/api/channels/${channelName}/access_token?client_id=${clientId}`)
-            .then(res => res.json() as Promise<{[key: string]: string}>)
-            .then(res => (
-                fetch(`https://usher.ttvnw.net/api/channel/hls/${channelName.toLowerCase()}.m3u8?client_id=${clientId}&token=${res.token}&sig=${res.sig}`)
-            ))
+        fetch('https://gql.twitch.tv/gql', {
+            method: 'POST',
+            headers: { 'Client-id': clientId },
+            body: gqlBody
+        })
+            .then(res => res.json())
+            .then((res: {data: { streamPlaybackAccessToken: { value: string, signature: string } }}) => {
+                const { value, signature } = res.data.streamPlaybackAccessToken;
+                return fetch(`https://usher.ttvnw.net/api/channel/hls/${channelName}.m3u8?client_id=${clientId}&token=${value}&sig=${signature}`);
+            })
             .then(res => res.text())
             .then(res => this.hls.loadSource(this.parsePlaylist(res)))
             .catch(err => console.error(err));
@@ -75,11 +97,9 @@ export class Player {
 
     private parsePlaylist(playlist: string): string {
         if (playlist.includes('VIDEO="chunked"')) {
-            return playlist.split('VIDEO="chunked"\n')[1].split('m3u8')[0];
-        } else if (this.highRes) {
-            return playlist.split('VIDEO="360p30"\n')[1].split('m3u8')[0];
+            return playlist.split('VIDEO="chunked"')[1].split('\n')[1].split('m3u8')[0];
         }
-        return playlist.split('VIDEO="160p30"\n')[1].split('m3u8')[0];
+        return playlist.split('VIDEO="360p30"')[1].split('\n')[1].split('m3u8')[0];
     }
 
 }

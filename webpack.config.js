@@ -1,7 +1,6 @@
-const webpack = require('webpack');
 const path = require('path');
 
-module.exports = (env, options) => {
+module.exports = () => {
     return {
         entry: {
             app: './src/TwitchPreview'
@@ -11,7 +10,7 @@ module.exports = (env, options) => {
             filename: 'bundle.js'
         },
         resolve: {
-            extensions: ['*', '.webpack.js', '.web.js', '.ts', '.js'],
+            extensions: ['.ts', '.js'],
             modules: [
                 path.resolve(__dirname, './node_modules')
             ]
@@ -30,12 +29,6 @@ module.exports = (env, options) => {
                     ]
                 }
             ]
-        },
-        plugins: [
-            new webpack.EnvironmentPlugin({
-                NODE_ENV: options.mode,
-                PRODUCTION: JSON.stringify(options.mode == 'production' ? true : false)
-            })
-        ]
+        }
     };
 };
